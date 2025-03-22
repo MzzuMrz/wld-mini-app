@@ -74,13 +74,13 @@ export const POST = async (req: NextRequest) => {
 				isNewUser: user.isNewUser
 			}
 		})
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	} catch (error: any) {
+	} catch (error: unknown) {
 		// Handle errors in validation or processing
+		const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
 		return NextResponse.json({
 			status: 'error',
 			isValid: false,
-			message: error.message,
+			message: errorMessage,
 		})
 	}
 }

@@ -1,12 +1,33 @@
-# WLD-101
+# World ID Voting App
 
 Welcome! 🎉
 
-This repository provides a clear and straightforward template demonstrating how to build a Mini App using [World's Mini Apps](https://docs.world.org/mini-apps).
+This repository provides a secure voting application built with [World's Mini Apps](https://docs.world.org/mini-apps) technology. The app uses World ID verification to ensure only eligible users can create polls and vote.
 
-The example Mini App uses **Next.js** and showcases various [commands](https://docs.world.org/mini-apps/quick-start/commands) supported by the MiniKit SDK. Start here to quickly experiment and integrate Worldcoin Mini Apps into your projects.
+The application is built with **Next.js** and showcases various [commands](https://docs.world.org/mini-apps/quick-start/commands) supported by the MiniKit SDK, focused on creating a user-friendly and secure voting experience.
 
-Let's dive in! 🚀
+## 🚀 Latest Updates
+
+We've fixed several issues in the voting application:
+
+1. **Login Flow Fixed**: The login now correctly updates the shared context, ensuring the main menu appears immediately after authentication
+2. **Dropdown Menus Working**: All select inputs in the Create Poll page now work correctly with proper handling
+3. **Infinite Loop Bug Fixed**: Resolved render loop issues by memoizing functions and properly managing state
+4. **Mock Data Added**: Test polls are now available to demonstrate functionality
+5. **UI/UX Enhanced**: Improved mobile-friendly design with better feedback and animations
+
+Let's dive in!
+
+---
+
+## Features
+
+- **World ID Authentication**: Secure login using World ID verification
+- **Poll Creation**: Create public or private polls with customizable settings
+- **Verification Levels**: Support for different verification levels (Orb, Device, None)
+- **Voting**: Vote on polls with single or multiple choice options
+- **Results Visualization**: View real-time poll results with statistics
+- **Privacy Options**: Anonymous voting to protect voter identity when needed
 
 ---
 
@@ -15,8 +36,9 @@ Let's dive in! 🚀
 - **[pnpm](https://pnpm.io/)**: Fast and efficient package manager.
 - **[ngrok](https://ngrok.com/)**: Expose your local server publicly for easy testing.
 - **[mini-kit-js](https://www.npmjs.com/package/@worldcoin/mini-kit-js)**: JavaScript SDK for World's Mini Apps.
-- **[minikit-react](https://www.npmjs.com/package/@worldcoin/minikit-react)**: React bindings for MiniKit SDK.
 - **[mini-apps-ui-kit-react](https://www.npmjs.com/package/@worldcoin/mini-apps-ui-kit-react)**: Pre-built UI components for Mini Apps.
+- **[next-auth](https://www.npmjs.com/package/next-auth)**: Authentication for Next.js
+- **[tailwindcss](https://tailwindcss.com/)**: Utility-first CSS framework for styling
 
 ---
 
@@ -25,8 +47,8 @@ Let's dive in! 🚀
 ### 1. Clone the repository
 
 ```bash
-git clone git@github.com:wlding-blocks/wld-mini-apps-101.git
-cd wld-mini-apps-101
+git clone git@github.com:MzzuMrz/wld-mini-app.git
+cd wld-mini-app
 ```
 
 ### 2. Install dependencies
@@ -49,14 +71,10 @@ Then fill in the required variables:
 
 Find your **App ID** in the [Developer Portal](https://developer.worldcoin.org/) (`Configuration > Basic`).
 
-<img width="400" alt="image" src="https://github.com/user-attachments/assets/b1d67769-bce7-46b9-a9e2-1591fb7f33f2" />
-
 #### 🔑 DEV_PORTAL_API_KEY
 
 Generate your **API Key** under the `API Keys` section.  
 **Note:** Visible only once—copy it carefully!
-
-<img width="400" alt="image" src="https://github.com/user-attachments/assets/b8b8906a-25e1-411f-8eee-d647fa1e2672" />
 
 #### 🔑 JWT_SECRET
 
@@ -80,7 +98,7 @@ Without a properly configured `JWT_SECRET`, the authentication system will not w
 
 ## ▶️ Running the Project
 
-Run your Mini App locally:
+Run your voting app locally:
 
 ```bash
 pnpm dev
@@ -92,7 +110,7 @@ Visit [http://localhost:3000](http://localhost:3000) in your browser.
 
 ## 📱 Testing on Mobile
 
-To test your Mini App directly on your phone, expose your app publicly using NGROK.
+To test your voting app directly on your phone, expose your app publicly using NGROK.
 
 ### 🚀 Using NGROK
 
@@ -110,21 +128,57 @@ Go to the [Developer Portal](https://developer.worldcoin.org/) and configure:
 
 - **App URL:** Set it to your NGROK-generated URL.
 
-<img width="400" alt="image" src="https://github.com/user-attachments/assets/4d2c2c1b-cab4-40a7-ad6d-f91d1a77ecc5" />
-
-- **Incognito Actions**: Define an action and use it within `components/Verify/index.tsx`.
-
----
-
-### 📱 Opening your Mini App in World App
+### 📱 Opening your Voting App in World App
 
 From the [Developer Portal](https://developer.worldcoin.org/), navigate to `Configuration > Basic` and scan the generated QR code.
 
-<img width="350" alt="image" src="https://github.com/user-attachments/assets/6f560f96-3fd8-4611-838f-3af7e337d5ce" />
+The World App will automatically launch your voting app! 🎉
 
-The World App will automatically launch your Mini App! 🎉
+---
 
-<img width="350" alt="image" src="https://github.com/user-attachments/assets/c2c7b49b-5641-4fd1-abc0-a310b621a4dd" />
+## 🔍 Using the Voting App
+
+### 1. Login with World ID
+First, you need to authenticate using World ID to access the app's features. The app will immediately show the main menu once you're authenticated.
+
+### 2. Create a Poll
+After logging in, you can create a new poll with:
+- Poll title/question (max 100 characters)
+- 2-5 voting options
+- Verification level (orb, device, none)
+- Public or private poll visibility
+- End time (date or duration)
+- Anonymous voting option
+- Single or multi-choice selection option
+
+### 3. Vote on Polls
+- View a list of available public polls filtered by your verification level
+- Join private polls using a passcode
+- Cast your vote according to the poll's choice type
+
+### 4. View Results
+- See real-time results after voting
+- View voter lists for non-anonymous polls
+- Track participation statistics
+
+---
+
+## 🧠 Implementation Details
+
+This voting app demonstrates several key features:
+
+1. **Context API**: Uses React Context to share state across components
+2. **Mock Data Storage**: Implements in-memory storage for polls and votes (could be replaced with a real backend later)
+3. **Verification Levels**: Respects the World ID verification levels for access control
+4. **Responsive Design**: Mobile-first layout that works well on all devices
+5. **Tailwind CSS**: Styling using utility-first approach for maintainable code
+
+The implementation currently uses in-memory storage as a backend mock. To create a production-ready version, you would need to:
+
+1. Replace the mock storage with an actual database (MongoDB, PostgreSQL, etc.)
+2. Implement proper error handling and logging
+3. Add more comprehensive testing
+4. Set up CI/CD pipelines
 
 ---
 
@@ -132,6 +186,7 @@ The World App will automatically launch your Mini App! 🎉
 
 - [World Documentation](https://docs.world.org/)
 - [Developer Portal](https://developer.worldcoin.org/)
+- [MiniKit Documentation](https://docs.world.org/mini-apps/quick-start/minikit)
 
 ---
 

@@ -5,12 +5,14 @@ import MiniKitProvider from "@/components/minikit-provider";
 import dynamic from "next/dynamic";
 import NextAuthProvider from "@/components/next-auth-provider";
 import "@worldcoin/mini-apps-ui-kit-react/styles.css";
+import { VotingProvider } from "@/context/VotingContext";
+import { RealtimeProvider } from "@/context/RealtimeContext";
 
 const sora = Sora({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "WLD101",
-  description: "Template mini app for Worldcoin",
+  title: "World ID Voting App",
+  description: "Create and vote on polls securely with World ID verification",
 };
 
 export default function RootLayout({
@@ -38,7 +40,11 @@ export default function RootLayout({
         <NextAuthProvider>
           <ErudaProvider>
             <MiniKitProvider>
-              {children}
+              <RealtimeProvider>
+                <VotingProvider>
+                  {children}
+                </VotingProvider>
+              </RealtimeProvider>
             </MiniKitProvider>
           </ErudaProvider>
         </NextAuthProvider>
