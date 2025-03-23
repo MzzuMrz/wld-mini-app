@@ -115,23 +115,45 @@ export const getPollByPasscode = async (passcode: string): Promise<Poll | null> 
 };
 
 // Vote operations
-export const createVote = async (voteData: Omit<Vote, 'id' | 'timestamp'>): Promise<Vote> => {
-  // Check if user has already voted
-  const existingVote = await getVoteByUserIdAndPollId(voteData.userId, voteData.pollId);
-  if (existingVote) {
-    throw new Error('You have already voted in this poll');
+export const createVote = async (voteData: Omit<Vote, 'id' | 'timestamp'> & { voterId?: string }): Promise<Vote> => {
+  try {
+    console.log("Creating vote with data:", voteData);
+    
+    // Check if user has already voted
+    const existingVote = await getVoteByUserIdAndPollId(voteData.userId, voteData.pollId, voteData.voterId);
+    if (existingVote) {
+      console.log("User already voted:", existingVote);
+      throw new Error('You have already voted in this poll');
+    }
+
+    // Create a clean vote object that includes voterId
+    const voteWithVoterId: Partial<Vote> = {
+      pollId: voteData.pollId,
+      userId: voteData.userId,
+      choices: voteData.choices,
+    };
+    
+    // Only add voterId if it exists
+    if (voteData.voterId) {
+      voteWithVoterId.voterId = voteData.voterId;
+    }
+    
+    const newVoteRef = push(votesRef);
+    const id = newVoteRef.key || '';
+    const newVote: Vote = {
+      ...voteWithVoterId as Omit<Vote, 'id' | 'timestamp'>,
+      id,
+      timestamp: new Date().toISOString(),
+    };
+
+    // Use retryOperation to make sure the vote is saved
+    await retryOperation(() => set(newVoteRef, newVote));
+    console.log("Vote created successfully:", newVote);
+    return newVote;
+  } catch (error) {
+    console.error("Error creating vote:", error);
+    throw error;
   }
-
-  const newVoteRef = push(votesRef);
-  const id = newVoteRef.key || '';
-  const newVote: Vote = {
-    ...voteData,
-    id,
-    timestamp: new Date().toISOString(),
-  };
-
-  await set(newVoteRef, newVote);
-  return newVote;
 };
 
 export const getVotesByPollId = async (pollId: string): Promise<Vote[]> => {
@@ -143,13 +165,23 @@ export const getVotesByPollId = async (pollId: string): Promise<Vote[]> => {
   return votes.filter(vote => vote.pollId === pollId);
 };
 
-export const getVoteByUserIdAndPollId = async (userId: string, pollId: string): Promise<Vote | null> => {
+export const getVoteByUserIdAndPollId = async (userId: string, pollId: string, voterId?: string): Promise<Vote | null> => {
   const snapshot = await get(votesRef);
   if (!snapshot.exists()) return null;
 
   const votesData = snapshot.val();
   const votes = Object.values(votesData) as Vote[];
-  const vote = votes.find(v => v.pollId === pollId && v.userId === userId);
+  
+  let vote = null;
+  if (voterId) {
+    // First try to find by voterId (worldHumanId)
+    vote = votes.find(v => v.pollId === pollId && v.voterId === voterId);
+  }
+  
+  // If not found by voterId or no voterId provided, try by userId
+  if (!vote) {
+    vote = votes.find(v => v.pollId === pollId && v.userId === userId);
+  }
 
   return vote || null;
 };

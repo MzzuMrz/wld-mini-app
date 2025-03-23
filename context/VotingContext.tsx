@@ -3,6 +3,7 @@
 import { Poll, User, Vote, VerificationLevel } from '@/types';
 import { createContext, useContext, useState, ReactNode, useEffect, useCallback } from 'react';
 import { useRealtime } from './RealtimeContext';
+import { MiniKit } from "@worldcoin/minikit-js";
 
 interface VotingContextType {
   // State
@@ -42,19 +43,36 @@ export function VotingProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const loadUser = async () => {
       try {
+        console.log("Checking authentication status...");
+        // First, check if MiniKit is installed and has a user
+        if (!MiniKit.isInstalled() || !MiniKit.user || !MiniKit.user.id) {
+          console.log("MiniKit not installed or user not logged in");
+          setCurrentUser(null);
+          return;
+        }
+        
         const response = await fetch('/api/auth/me');
         if (response.ok) {
           const data = await response.json();
-          if (data.user) {
+          if (data.user && data.authenticated) {
+            console.log("User authenticated:", data.user);
+            // Make sure to include the worldHumanId from MiniKit
             setCurrentUser({
               ...data.user,
-              // Assume verification level based on login status
+              worldHumanId: MiniKit.user.id, // Always use MiniKit's ID
               verificationLevel: 'device' // Default to device, could be updated based on actual verification
             });
+          } else {
+            console.log("Authentication failed or no user data");
+            setCurrentUser(null);
           }
+        } else {
+          console.log("Authentication API error");
+          setCurrentUser(null);
         }
       } catch (error) {
         console.error("Error loading user:", error);
+        setCurrentUser(null);
       }
     };
 
@@ -80,7 +98,9 @@ export function VotingProvider({ children }: { children: ReactNode }) {
   const createNewPoll = useCallback(async (pollData: Omit<Poll, 'id' | 'creatorId' | 'createdAt'>): Promise<Poll> => {
     if (!currentUser) throw new Error('User not authenticated');
     
-    const newPoll = await realtime.createPoll(pollData, currentUser.walletAddress);
+    // Prefer using worldHumanId if available, fallback to wallet address
+    const creatorId = currentUser.worldHumanId || currentUser.walletAddress;
+    const newPoll = await realtime.createPoll(pollData, creatorId);
     
     // Update local polls state
     setPolls(prev => [newPoll, ...prev]);
@@ -94,6 +114,7 @@ export function VotingProvider({ children }: { children: ReactNode }) {
       const vote = await realtime.createVote({
         pollId,
         userId: currentUser.walletAddress,
+        voterId: currentUser.worldHumanId, // Use World ID for vote tracking
         choices,
       });
       
@@ -123,7 +144,11 @@ export function VotingProvider({ children }: { children: ReactNode }) {
       
       // Check if user has already voted
       if (currentUser) {
-        const vote = await realtime.getVoteByUserIdAndPollId(currentUser.walletAddress, pollId);
+        const vote = await realtime.getVoteByUserIdAndPollId(
+          currentUser.walletAddress, 
+          pollId,
+          currentUser.worldHumanId // Use World ID for vote lookup
+        );
         setUserVote(vote);
       }
       
@@ -146,7 +171,11 @@ export function VotingProvider({ children }: { children: ReactNode }) {
   const checkUserVoted = useCallback(async (pollId: string): Promise<boolean> => {
     if (!currentUser) return false;
     
-    const vote = await realtime.getVoteByUserIdAndPollId(currentUser.walletAddress, pollId);
+    const vote = await realtime.getVoteByUserIdAndPollId(
+      currentUser.walletAddress, 
+      pollId,
+      currentUser.worldHumanId // Use World ID for vote verification
+    );
     return !!vote;
   }, [currentUser, realtime]);
 

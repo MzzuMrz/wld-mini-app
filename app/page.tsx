@@ -82,26 +82,32 @@ function PollStats() {
 
 export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
-  const { currentUser } = useVoting();
+  const { currentUser, setCurrentUser } = useVoting();
   const router = useRouter();
 
   // Log the current user state whenever it changes (for debugging)
   useEffect(() => {
     console.log("Current user in Home:", currentUser);
   }, [currentUser]);
-
+  
   useEffect(() => {
     const checkMiniKit = async () => {
       const isInstalled = MiniKit.isInstalled();
       if (isInstalled) {
         setIsLoading(false);
+        
+        // Check if the user is actually logged in with MiniKit
+        if (!MiniKit.user || !MiniKit.user.id) {
+          // Clear currentUser in VotingContext if no valid MiniKit session
+          setCurrentUser(null);
+        }
       } else {
         setTimeout(checkMiniKit, 500);
       }
     };
 
     checkMiniKit();
-  }, []);
+  }, [setCurrentUser]);
 
   if (isLoading) {
     return (

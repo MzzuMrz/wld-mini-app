@@ -42,7 +42,7 @@ const VoteOption = ({
 };
 
 export default function PollDetail() {
-  const { currentUser, selectPoll, submitVote, fetchPollResults, userVote, pollResults, currentPoll } = useVoting();
+  const { currentUser, selectPoll, submitVote, fetchPollResults, userVote, pollResults, currentPoll, checkUserVoted } = useVoting();
   const router = useRouter();
   const params = useParams();
   const pollId = params?.id as string;
@@ -76,6 +76,15 @@ export default function PollDetail() {
         
         if (isMounted) {
           await fetchPollResults(pollId);
+          
+          // Force check if user already voted by worldHumanId
+          if (currentUser && currentUser.worldHumanId) {
+            const hasVoted = await checkUserVoted(pollId);
+            if (hasVoted && !userVote) {
+              // Refresh poll to get latest user vote with World ID
+              await selectPoll(pollId);
+            }
+          }
         }
       } catch (err) {
         console.error("Error loading poll:", err);
@@ -96,7 +105,7 @@ export default function PollDetail() {
     return () => {
       isMounted = false;
     };
-  }, [pollId, selectPoll, fetchPollResults, currentUser]);
+  }, [pollId, selectPoll, fetchPollResults, currentUser, checkUserVoted, userVote]);
 
   const handleOptionSelect = (index: number) => {
     console.log(`Option ${index} selected`);
@@ -123,10 +132,19 @@ export default function PollDetail() {
     setError("");
 
     try {
+      // Add debug logs to track the issue
+      console.log("Submitting vote for pollId:", pollId);
+      console.log("Options selected:", selectedOptions);
+      console.log("Current user:", currentUser);
+      
       const vote = await submitVote(pollId, selectedOptions);
+      console.log("Vote result:", vote);
+      
       if (vote) {
         setVotedSuccessfully(true);
         await fetchPollResults(pollId);
+      } else {
+        setError("Failed to record your vote. Please try again.");
       }
     } catch (err: unknown) {
       console.error("Error submitting vote:", err);

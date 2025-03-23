@@ -20,6 +20,7 @@ export interface Vote {
   id: string;
   pollId: string;
   userId: string;
+  voterId?: string; // World ID unique identifier
   choices: number[]; // Indices of the selected options
   timestamp: string;
 }
@@ -28,6 +29,6 @@ export interface User {
   walletAddress: string;
   username: string | null;
   profilePictureUrl: string | null;
-  worldId?: string; // Will store nullifier hash or other ID
+  worldHumanId?: string; // World ID unique identifier
   verificationLevel?: VerificationLevel;
 }

@@ -36,6 +36,7 @@ export const Login = () => {
                     // Update VotingContext with the authenticated user
                     setCurrentUser({
                         ...data.user,
+                        worldHumanId: MiniKit.user.id, // Use MiniKit user ID as World ID
                         verificationLevel: 'device' // Default to device verification
                     });
                 }
@@ -79,6 +80,7 @@ export const Login = () => {
                         walletAddress: MiniKit.user.walletAddress,
                         username: MiniKit.user.username,
                         profilePictureUrl: MiniKit.user.profilePictureUrl,
+                        worldHumanId: MiniKit.user.id, // Use MiniKit user ID as World ID
                         verificationLevel: 'device' // Default to device verification
                     });
                 }

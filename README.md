@@ -10,11 +10,12 @@ The application is built with **Next.js** and showcases various [commands](https
 
 We've fixed several issues in the voting application:
 
-1. **Login Flow Fixed**: The login now correctly updates the shared context, ensuring the main menu appears immediately after authentication
-2. **Dropdown Menus Working**: All select inputs in the Create Poll page now work correctly with proper handling
-3. **Infinite Loop Bug Fixed**: Resolved render loop issues by memoizing functions and properly managing state
-4. **Mock Data Added**: Test polls are now available to demonstrate functionality
-5. **UI/UX Enhanced**: Improved mobile-friendly design with better feedback and animations
+1. **Vote Misattribution Fixed**: Each vote now includes a `voterId` field that stores the user's World ID unique identifier (`worldHumanId`), ensuring votes are correctly tracked per device
+2. **Login Enforcement Added**: The app now checks for a valid MiniKit session on each load and prompts for login when needed
+3. **Vote Verification Improved**: Votes are now verified against the current user's World ID, fixing the issue where votes from one device appeared on another
+4. **Data Model Updated**: The `User` interface now includes a `worldHumanId` field, and the system prioritizes this identifier over wallet addresses
+5. **Poll Creation Enhanced**: Poll creation now uses the creator's World ID as the `creatorId`
+6. **Previous Fixes**: Login flow improvements, dropdown menus, infinite loop bugs, mock data, and mobile UI enhancements
 
 Let's dive in!
 

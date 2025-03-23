@@ -17,9 +17,9 @@ interface RealtimeContextType {
   getPollByPasscode: (passcode: string) => Promise<Poll | null>;
   
   // Vote operations
-  createVote: (voteData: Omit<Vote, 'id' | 'timestamp'>) => Promise<Vote>;
+  createVote: (voteData: Omit<Vote, 'id' | 'timestamp'> & { voterId?: string }) => Promise<Vote>;
   getVotesByPollId: (pollId: string) => Promise<Vote[]>;
-  getVoteByUserIdAndPollId: (userId: string, pollId: string) => Promise<Vote | null>;
+  getVoteByUserIdAndPollId: (userId: string, pollId: string, voterId?: string) => Promise<Vote | null>;
   getPollResults: (pollId: string) => Promise<Array<{ option: string; count: number; voters?: string[] }>>;
   
   // Real-time cache
@@ -118,13 +118,17 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
   };
 
   // Vote operations
-  const createVote = async (voteData: Omit<Vote, 'id' | 'timestamp'>): Promise<Vote> => {
+  const createVote = async (voteData: Omit<Vote, 'id' | 'timestamp'> & { voterId?: string }): Promise<Vote> => {
     const newVote = await FirebaseService.createVote(voteData);
     
-    // Update cached user votes
+    // Update cached user votes - cache key includes voterId if available
+    const cacheKey = voteData.voterId ? 
+      `${voteData.userId}-${voteData.pollId}-${voteData.voterId}` : 
+      `${voteData.userId}-${voteData.pollId}`;
+      
     setCachedUserVotes(prev => ({
       ...prev,
-      [`${voteData.userId}-${voteData.pollId}`]: newVote
+      [cacheKey]: newVote
     }));
     
     return newVote;
@@ -134,15 +138,18 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
     return FirebaseService.getVotesByPollId(pollId);
   };
 
-  const getVoteByUserIdAndPollId = async (userId: string, pollId: string): Promise<Vote | null> => {
-    // Check cache first
-    const cacheKey = `${userId}-${pollId}`;
+  const getVoteByUserIdAndPollId = async (userId: string, pollId: string, voterId?: string): Promise<Vote | null> => {
+    // Check cache first - include voterId in cache key if available
+    const cacheKey = voterId ? 
+      `${userId}-${pollId}-${voterId}` : 
+      `${userId}-${pollId}`;
+      
     if (cachedUserVotes[cacheKey] !== undefined) {
       return cachedUserVotes[cacheKey];
     }
     
     // If not in cache, fetch from Firebase
-    const vote = await FirebaseService.getVoteByUserIdAndPollId(userId, pollId);
+    const vote = await FirebaseService.getVoteByUserIdAndPollId(userId, pollId, voterId);
     
     // Update cache
     setCachedUserVotes(prev => ({
