@@ -1,19 +1,19 @@
 // Firebase configuration for real-time data synchronization
 import { initializeApp } from 'firebase/app';
 import { getDatabase, ref, onValue, set, push, get, remove, update, child } from 'firebase/database';
-import { Poll, Vote, VerificationLevel, PollVisibility } from '@/types';
+import { Poll, Vote, VerificationLevel, PollVisibility, PollChoice } from '@/types';
 
 // Firebase configuration
 // Using a public demo Firebase project for demonstration purposes
 // Replace with your own Firebase project in production
 const firebaseConfig = {
-  apiKey: { process.env.FIREBASE_API_KEY} ,
-  authDomain: "worldid-voting-demo.firebaseapp.com",
-  databaseURL: "https://worldid-voting-demo-default-rtdb.firebaseio.com",
-  projectId: "worldid-voting-demo",
-  storageBucket: "worldid-voting-demo.appspot.com",
-  messagingSenderId: "968225802849",
-  appId: "1:968225802849:web:75eb30b5e96d8c2c6c9e75"
+  apiKey: "AIzaSyBy74XWfcAG3QU_lDL8LOMe3n_ueaUQMyA",
+  authDomain: "wld-mini-app.firebaseapp.com",
+  projectId: "wld-mini-app",
+  storageBucket: "wld-mini-app.firebasestorage.app",
+  messagingSenderId: "294249669432",
+  appId: "1:294249669432:web:c576afaa3b841aea3517cd",
+  measurementId: "G-X0XSHFBG24"
 };
 
 // Initialize Firebase
@@ -28,12 +28,22 @@ const votesRef = ref(database, 'votes');
 export const createPoll = async (pollData: Omit<Poll, 'id' | 'createdAt'>): Promise<Poll> => {
   const newPollRef = push(pollsRef);
   const id = newPollRef.key || '';
+
+  // Crear un objeto limpio sin valores undefined
+  const cleanedPollData = { ...pollData };
+
+  // Si passcode es undefined, asignar null o una cadena vacía
+  if (cleanedPollData.passcode === undefined) {
+    cleanedPollData.passcode = null; // O usar '' si prefieres una cadena vacía
+  }
+
+  // Crear el objeto final de la encuesta
   const newPoll: Poll = {
-    ...pollData,
+    ...cleanedPollData,
     id,
     createdAt: new Date().toISOString(),
   };
-  
+
   await set(newPollRef, newPoll);
   return newPoll;
 };
@@ -46,7 +56,7 @@ export const getPollById = async (id: string): Promise<Poll | null> => {
 export const getAllPolls = async (): Promise<Poll[]> => {
   const snapshot = await get(pollsRef);
   if (!snapshot.exists()) return [];
-  
+
   const pollsData = snapshot.val();
   return Object.values(pollsData) as Poll[];
 };
@@ -56,22 +66,22 @@ export const getFilteredPolls = async (
   visibility: PollVisibility = 'public'
 ): Promise<Poll[]> => {
   const polls = await getAllPolls();
-  
+
   return polls
     .filter(poll => {
       const isActive = new Date(poll.endTime) > new Date();
       const matchesVisibility = poll.visibility === visibility;
-      
-      // A user can see polls if:
-      // 1. The poll has no verification requirement (none), OR
-      // 2. The user's verification level is equal to or greater than the poll's requirement
-      const canAccessWithVerification = 
-        poll.verificationLevel === 'none' || 
-        !verificationLevel || 
-        verificationLevel === poll.verificationLevel ||
-        (verificationLevel === 'orb' && ['device', 'none'].includes(poll.verificationLevel)) ||
-        (verificationLevel === 'device' && poll.verificationLevel === 'none');
-      
+
+      // Solución: Mejorar las comprobaciones para evitar comparaciones incompatibles de tipos
+      const canAccessWithVerification =
+        !verificationLevel || // Si no hay nivel de verificación requerido
+        poll.verificationLevel === 'none' || // O si el poll no requiere verificación
+        verificationLevel === poll.verificationLevel || // O si los niveles coinciden exactamente
+        (verificationLevel === 'orb' &&
+          (poll.verificationLevel === 'device' || poll.verificationLevel === 'none')) || // Orb puede acceder a device o none
+        (verificationLevel === 'device' &&
+          poll.verificationLevel === 'none' as VerificationLevel); // Device puede acceder a none
+
       return isActive && matchesVisibility && canAccessWithVerification;
     })
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
@@ -80,11 +90,11 @@ export const getFilteredPolls = async (
 export const getPollByPasscode = async (passcode: string): Promise<Poll | null> => {
   const snapshot = await get(pollsRef);
   if (!snapshot.exists()) return null;
-  
+
   const pollsData = snapshot.val();
   const polls = Object.values(pollsData) as Poll[];
   const poll = polls.find(p => p.passcode === passcode);
-  
+
   return poll || null;
 };
 
@@ -95,7 +105,7 @@ export const createVote = async (voteData: Omit<Vote, 'id' | 'timestamp'>): Prom
   if (existingVote) {
     throw new Error('You have already voted in this poll');
   }
-  
+
   const newVoteRef = push(votesRef);
   const id = newVoteRef.key || '';
   const newVote: Vote = {
@@ -103,7 +113,7 @@ export const createVote = async (voteData: Omit<Vote, 'id' | 'timestamp'>): Prom
     id,
     timestamp: new Date().toISOString(),
   };
-  
+
   await set(newVoteRef, newVote);
   return newVote;
 };
@@ -111,7 +121,7 @@ export const createVote = async (voteData: Omit<Vote, 'id' | 'timestamp'>): Prom
 export const getVotesByPollId = async (pollId: string): Promise<Vote[]> => {
   const snapshot = await get(votesRef);
   if (!snapshot.exists()) return [];
-  
+
   const votesData = snapshot.val();
   const votes = Object.values(votesData) as Vote[];
   return votes.filter(vote => vote.pollId === pollId);
@@ -120,28 +130,28 @@ export const getVotesByPollId = async (pollId: string): Promise<Vote[]> => {
 export const getVoteByUserIdAndPollId = async (userId: string, pollId: string): Promise<Vote | null> => {
   const snapshot = await get(votesRef);
   if (!snapshot.exists()) return null;
-  
+
   const votesData = snapshot.val();
   const votes = Object.values(votesData) as Vote[];
   const vote = votes.find(v => v.pollId === pollId && v.userId === userId);
-  
+
   return vote || null;
 };
 
 export const getPollResults = async (pollId: string): Promise<Array<{ option: string; count: number; voters?: string[] }>> => {
   const poll = await getPollById(pollId);
   if (!poll) return [];
-  
+
   const votes = await getVotesByPollId(pollId);
-  
+
   return poll.options.map((option, index) => {
     const votesForOption = votes.filter(vote => vote.choices.includes(index));
     return {
       option,
       count: votesForOption.length,
       // Only include voters list if poll is not anonymous
-      ...(poll.anonymous ? {} : { 
-        voters: votesForOption.map(vote => vote.userId) 
+      ...(poll.anonymous ? {} : {
+        voters: votesForOption.map(vote => vote.userId)
       })
     };
   });
@@ -154,7 +164,7 @@ export const subscribeToPollsChange = (callback: (polls: Poll[]) => void) => {
       callback([]);
       return;
     }
-    
+
     const pollsData = snapshot.val();
     const polls = Object.values(pollsData) as Poll[];
     callback(polls);
@@ -167,7 +177,7 @@ export const subscribeToVotesChange = (callback: (votes: Vote[]) => void) => {
       callback([]);
       return;
     }
-    
+
     const votesData = snapshot.val();
     const votes = Object.values(votesData) as Vote[];
     callback(votes);
@@ -177,7 +187,7 @@ export const subscribeToVotesChange = (callback: (votes: Vote[]) => void) => {
 // Poll-specific subscriptions
 export const subscribeToPollById = (pollId: string, callback: (poll: Poll | null) => void) => {
   const pollRef = ref(database, `polls/${pollId}`);
-  
+
   onValue(pollRef, (snapshot) => {
     const poll = snapshot.exists() ? snapshot.val() : null;
     callback(poll);
@@ -190,7 +200,7 @@ export const subscribeToPollVotes = (pollId: string, callback: (votes: Vote[]) =
       callback([]);
       return;
     }
-    
+
     const votesData = snapshot.val();
     const votes = Object.values(votesData) as Vote[];
     const pollVotes = votes.filter(vote => vote.pollId === pollId);
@@ -205,7 +215,7 @@ export const initializeSampleData = async () => {
   if (pollsSnapshot.exists()) {
     return; // Don't initialize if data already exists
   }
-  
+
   // Sample polls
   const samplePolls = [
     {
@@ -215,7 +225,7 @@ export const initializeSampleData = async () => {
       visibility: 'public' as PollVisibility,
       endTime: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
       anonymous: false,
-      choiceType: 'single',
+      choiceType: 'single' as PollChoice,
       creatorId: '0x7890123456789012345678901234567890123456',
     },
     {
@@ -225,7 +235,7 @@ export const initializeSampleData = async () => {
       visibility: 'public' as PollVisibility,
       endTime: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
       anonymous: true,
-      choiceType: 'single',
+      choiceType: 'single' as PollChoice,
       creatorId: '0x7890123456789012345678901234567890123456',
     },
     {
@@ -235,18 +245,18 @@ export const initializeSampleData = async () => {
       visibility: 'public' as PollVisibility,
       endTime: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
       anonymous: false,
-      choiceType: 'single',
+      choiceType: 'single' as PollChoice,
       creatorId: '0x7890123456789012345678901234567890123456',
     }
   ];
-  
+
   // Create polls
   const createdPolls: Poll[] = [];
   for (const poll of samplePolls) {
     const newPoll = await createPoll(poll);
     createdPolls.push(newPoll);
   }
-  
+
   // Add sample votes to the first poll
   if (createdPolls.length > 0) {
     try {
@@ -255,7 +265,7 @@ export const initializeSampleData = async () => {
         userId: '0x1234567890123456789012345678901234567890',
         choices: [0]
       });
-      
+
       await createVote({
         pollId: createdPolls[0].id,
         userId: '0x2345678901234567890123456789012345678901',

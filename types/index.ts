@@ -4,16 +4,16 @@ export type PollChoice = 'single' | 'multi';
 
 export interface Poll {
   id: string;
-  creatorId: string;
   title: string;
   options: string[];
   verificationLevel: VerificationLevel;
   visibility: PollVisibility;
-  endTime: string; // ISO date string
-  passcode?: string; // For private polls
+  endTime: string;
+  createdAt: string;
   anonymous: boolean;
   choiceType: PollChoice;
-  createdAt: string;
+  creatorId: string;
+  passcode?: string | null; 
 }
 
 export interface Vote {
