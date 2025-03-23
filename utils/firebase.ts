@@ -23,7 +23,23 @@ const database = getDatabase(app);
 // Firebase refs
 const pollsRef = ref(database, 'polls');
 const votesRef = ref(database, 'votes');
-
+export const retryOperation = async (operation, maxRetries = 3, delay = 1000) => {
+  let lastError;
+  
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      return await operation();
+    } catch (error) {
+      console.log(`Intento ${attempt + 1} fallido: ${error.message}`);
+      lastError = error;
+      
+      // Esperar antes del siguiente intento (con backoff exponencial)
+      await new Promise(resolve => setTimeout(resolve, delay * Math.pow(2, attempt)));
+    }
+  }
+  
+  throw lastError;
+};
 // Poll operations
 export const createPoll = async (pollData: Omit<Poll, 'id' | 'createdAt'>): Promise<Poll> => {
   const newPollRef = push(pollsRef);

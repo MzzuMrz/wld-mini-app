@@ -1,98 +1,16 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, memo } from "react";
 import { Button, Input } from "@worldcoin/mini-apps-ui-kit-react";
 import { useVoting } from "@/context/VotingContext";
 import { useRouter } from "next/navigation";
 import { Poll } from "@/types";
 import { RealtimeStatus } from "@/components/RealtimeStatus";
+import { retryOperation } from "@/utils/firebase";
 
-export default function Vote() {
-  const { currentUser, fetchPublicPolls, fetchPrivatePoll } = useVoting();
-  const router = useRouter();
-
-  const [publicPolls, setPublicPolls] = useState<Poll[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [privateMode, setPrivateMode] = useState(false);
-  const [passcode, setPasscode] = useState("");
-  const [error, setError] = useState("");
-
-  // Redirect if not logged in
-  useEffect(() => {
-    if (!currentUser) {
-      router.push("/");
-    }
-  }, [currentUser, router]);
-
-  // Load public polls when component mounts or when verification level changes
-  useEffect(() => {
-    const loadPublicPolls = async () => {
-      if (!currentUser) return;
-      
-      try {
-        console.log("Fetching polls for user with verification level:", currentUser?.verificationLevel);
-        const polls = await fetchPublicPolls(currentUser?.verificationLevel);
-        console.log("Fetched polls:", polls.length);
-        setPublicPolls(polls);
-      } catch (err) {
-        console.error("Error loading polls:", err);
-        setError("Failed to load polls");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    // Load polls when component mounts or when dependencies change
-    setLoading(true);
-    loadPublicPolls();
-  }, [currentUser, fetchPublicPolls]);
+// Componente memo para mejorar rendimiento
+const PollCard = memo(({ poll, router }: { poll: Poll, router: any }) => {
+  const isExpired = new Date(poll.endTime) < new Date();
   
-  // Refresh polls when page gets focus
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible' && currentUser) {
-        fetchPublicPolls(currentUser?.verificationLevel)
-          .then((polls) => {
-            console.log("Refreshed polls on page focus:", polls.length);
-            setPublicPolls(polls);
-          })
-          .catch((err) => {
-            console.error("Error refreshing polls:", err);
-          });
-      }
-    };
-    
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    
-    // Cleanup
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, [currentUser, fetchPublicPolls]);
-
-  const handleJoinPrivatePoll = async () => {
-    if (!passcode.trim()) {
-      setError("Please enter a valid passcode");
-      return;
-    }
-
-    setLoading(true);
-    setError("");
-
-    try {
-      const poll = await fetchPrivatePoll(passcode);
-      if (poll) {
-        router.push(`/poll/${poll.id}`);
-      } else {
-        setError("Invalid passcode or poll not found");
-      }
-    } catch (err) {
-      console.error("Error joining private poll:", err);
-      setError("Failed to join poll");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const formatTimeRemaining = (endTime: string) => {
     const end = new Date(endTime);
     const now = new Date();
@@ -111,67 +29,160 @@ export default function Vote() {
       return `${hours}h ${minutes}m remaining`;
     }
   };
-
-  const renderPollCard = (poll: Poll) => {
-    const isExpired = new Date(poll.endTime) < new Date();
-    
-    return (
-      <div key={poll.id} className="bg-white rounded-lg shadow-sm p-5 transition-all hover:shadow-md border border-gray-100">
-        <h3 className="font-semibold text-lg mb-2 text-gray-800">{poll.title}</h3>
-        <div className="flex flex-wrap gap-2 mb-3">
-          <span className={`px-2 py-0.5 text-xs rounded-full ${
-            poll.verificationLevel === "orb" 
-              ? "bg-green-100 text-green-800" 
-              : poll.verificationLevel === "device" 
-              ? "bg-blue-100 text-blue-800" 
-              : "bg-gray-100 text-gray-800"
-          }`}>
-            {poll.verificationLevel === "orb" ? "Orb Verified" : 
-             poll.verificationLevel === "device" ? "Device Verified" : "No Verification"}
-          </span>
-          
-          <span className={`px-2 py-0.5 text-xs rounded-full ${
-            poll.choiceType === "single" 
-              ? "bg-purple-100 text-purple-800"
-              : "bg-indigo-100 text-indigo-800"
-          }`}>
-            {poll.choiceType === "single" ? "Single Choice" : "Multiple Choice"}
-          </span>
-          
-          {poll.anonymous && (
-            <span className="px-2 py-0.5 text-xs rounded-full bg-gray-100 text-gray-800">
-              Anonymous
-            </span>
-          )}
-        </div>
+  
+  return (
+    <div className="bg-white rounded-lg shadow-sm p-5 transition-all hover:shadow-md border border-gray-100">
+      <h3 className="font-semibold text-lg mb-2 text-gray-800">{poll.title}</h3>
+      <div className="flex flex-wrap gap-2 mb-3">
+        <span className={`px-2 py-0.5 text-xs rounded-full ${
+          poll.verificationLevel === "orb" 
+            ? "bg-green-100 text-green-800" 
+            : poll.verificationLevel === "device" 
+            ? "bg-blue-100 text-blue-800" 
+            : "bg-gray-100 text-gray-800"
+        }`}>
+          {poll.verificationLevel === "orb" ? "Orb Verified" : 
+           poll.verificationLevel === "device" ? "Device Verified" : "No Verification"}
+        </span>
         
-        <div className="text-sm text-gray-500 mb-4">
-          {isExpired ? (
-            <span className="text-red-500 font-medium">Poll has ended</span>
-          ) : (
-            <span className="font-medium">{formatTimeRemaining(poll.endTime)}</span>
-          )}
-        </div>
+        <span className={`px-2 py-0.5 text-xs rounded-full ${
+          poll.choiceType === "single" 
+            ? "bg-purple-100 text-purple-800"
+            : "bg-indigo-100 text-indigo-800"
+        }`}>
+          {poll.choiceType === "single" ? "Single Choice" : "Multiple Choice"}
+        </span>
         
-        <div className="flex justify-between items-center">
-          <div className="text-xs text-gray-500">
-            {poll.options.length} options
-          </div>
-          <Button
-            onClick={() => router.push(`/poll/${poll.id}`)}
-            variant="primary"
-            size="sm"
-            disabled={isExpired}
-            className={isExpired 
-              ? "bg-gray-400 hover:bg-gray-500" 
-              : "bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700"
-            }
-          >
-            {isExpired ? "View Results" : "Vote Now"}
-          </Button>
-        </div>
+        {poll.anonymous && (
+          <span className="px-2 py-0.5 text-xs rounded-full bg-gray-100 text-gray-800">
+            Anonymous
+          </span>
+        )}
       </div>
-    );
+      
+      <div className="text-sm text-gray-500 mb-4">
+        {isExpired ? (
+          <span className="text-red-500 font-medium">Poll has ended</span>
+        ) : (
+          <span className="font-medium">{formatTimeRemaining(poll.endTime)}</span>
+        )}
+      </div>
+      
+      <div className="flex justify-between items-center">
+        <div className="text-xs text-gray-500">
+          {poll.options.length} options
+        </div>
+        <Button
+          onClick={() => router.push(`/poll/${poll.id}`)}
+          variant="primary"
+          size="sm"
+          disabled={isExpired}
+          className={isExpired 
+            ? "bg-gray-400 hover:bg-gray-500" 
+            : "bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700"
+          }
+        >
+          {isExpired ? "View Results" : "Vote Now"}
+        </Button>
+      </div>
+    </div>
+  );
+});
+
+PollCard.displayName = 'PollCard';
+
+export default function Vote() {
+  const { currentUser, fetchPublicPolls, fetchPrivatePoll } = useVoting();
+  const router = useRouter();
+
+  const [publicPolls, setPublicPolls] = useState<Poll[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [privateMode, setPrivateMode] = useState(false);
+  const [passcode, setPasscode] = useState("");
+  const [error, setError] = useState("");
+  const [lastRefreshed, setLastRefreshed] = useState<Date>(new Date());
+
+  // Redirect if not logged in
+  useEffect(() => {
+    if (!currentUser) {
+      router.push("/");
+    }
+  }, [currentUser, router]);
+
+  // Función memoizada para cargar encuestas
+  const loadPublicPolls = useCallback(async () => {
+    if (!currentUser) return;
+    
+    setLoading(true);
+    try {
+      console.log("Fetching polls for user with verification level:", currentUser?.verificationLevel);
+      // Usar retryOperation para manejar fallos de conexión
+      const polls = await retryOperation(() => fetchPublicPolls(currentUser?.verificationLevel));
+      console.log("Fetched polls:", polls.length);
+      setPublicPolls(polls);
+      setLastRefreshed(new Date());
+    } catch (err) {
+      console.error("Error loading polls:", err);
+      setError("Failed to load polls");
+    } finally {
+      setLoading(false);
+    }
+  }, [currentUser, fetchPublicPolls]);
+
+  // Load public polls when component mounts or when verification level changes
+  useEffect(() => {
+    if (currentUser) {
+      loadPublicPolls();
+    }
+  }, [currentUser, loadPublicPolls]);
+  
+  // Refresh polls when page gets focus, con límite de frecuencia
+  useEffect(() => {
+    let lastRefreshTime = Date.now();
+    const REFRESH_INTERVAL = 10000; // Mínimo 10 segundos entre actualizaciones
+    
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && currentUser) {
+        const now = Date.now();
+        if (now - lastRefreshTime > REFRESH_INTERVAL) {
+          lastRefreshTime = now;
+          loadPublicPolls().catch(err => {
+            console.error("Error refreshing polls:", err);
+          });
+        }
+      }
+    };
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [currentUser, loadPublicPolls]);
+
+  const handleJoinPrivatePoll = async () => {
+    if (!passcode.trim()) {
+      setError("Please enter a valid passcode");
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+
+    try {
+      // Usar retryOperation para manejar fallos de conexión
+      const poll = await retryOperation(() => fetchPrivatePoll(passcode));
+      if (poll) {
+        router.push(`/poll/${poll.id}`);
+      } else {
+        setError("Invalid passcode or poll not found");
+      }
+    } catch (err) {
+      console.error("Error joining private poll:", err);
+      setError("Failed to join poll");
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (!currentUser) {
@@ -267,6 +278,12 @@ export default function Vote() {
           </div>
         ) : (
           <div className="space-y-4">
+            {!loading && !error && (
+              <div className="text-xs text-gray-500 mb-2">
+                Last refreshed: {lastRefreshed.toLocaleTimeString()}
+              </div>
+            )}
+            
             {loading ? (
               <div className="flex justify-center items-center p-12 bg-white rounded-lg shadow-sm border border-gray-100">
                 <svg className="animate-spin h-8 w-8 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -277,7 +294,9 @@ export default function Vote() {
               </div>
             ) : publicPolls.length > 0 ? (
               <div className="space-y-4">
-                {publicPolls.map(renderPollCard)}
+                {publicPolls.map(poll => (
+                  <PollCard key={poll.id} poll={poll} router={router} />
+                ))}
               </div>
             ) : (
               <div className="text-center py-12 bg-white rounded-lg shadow-sm border border-gray-100">

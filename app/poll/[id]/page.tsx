@@ -5,6 +5,42 @@ import { useVoting } from "@/context/VotingContext";
 import { useRouter, useParams } from "next/navigation";
 import { RealtimeStatus } from "@/components/RealtimeStatus";
 
+// Componente simple y aislado solo para la opción de votación
+const VoteOption = ({ 
+  option, 
+  index, 
+  isSelected, 
+  isSingleChoice,
+  onSelect 
+}) => {
+  return (
+    <button
+      type="button"
+      onClick={() => onSelect(index)}
+      className={`w-full text-left border rounded-lg p-4 mb-3 transition-all focus:outline-none ${
+        isSelected 
+          ? "border-blue-500 bg-blue-50" 
+          : "border-gray-200 hover:border-gray-300"
+      }`}
+    >
+      <div className="flex items-center">
+        <div className={`w-5 h-5 flex-shrink-0 ${isSingleChoice ? "rounded-full" : "rounded-sm"} border ${
+          isSelected 
+            ? "border-blue-500 bg-blue-500" 
+            : "border-gray-300"
+        }`}>
+          {isSelected && (
+            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+          )}
+        </div>
+        <span className="ml-3">{option}</span>
+      </div>
+    </button>
+  );
+};
+
 export default function PollDetail() {
   const { currentUser, selectPoll, submitVote, fetchPollResults, userVote, pollResults, currentPoll } = useVoting();
   const router = useRouter();
@@ -24,53 +60,55 @@ export default function PollDetail() {
     }
   }, [currentUser, router]);
 
-  // Load the poll and set up periodic refresh for results
+  // Load the poll and results
   useEffect(() => {
+    let isMounted = true;
+    
     const loadPoll = async () => {
       if (!pollId) return;
       
       try {
         const poll = await selectPoll(pollId);
-        if (!poll) {
+        if (!poll && isMounted) {
           setError("Poll not found");
           return;
         }
         
-        // Always fetch results to ensure real-time updates
-        await fetchPollResults(pollId);
+        if (isMounted) {
+          await fetchPollResults(pollId);
+        }
       } catch (err) {
         console.error("Error loading poll:", err);
-        setError("Failed to load poll");
+        if (isMounted) {
+          setError("Failed to load poll");
+        }
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
 
     if (currentUser) {
       loadPoll();
-      
-      // Set up periodic refresh for results
-      const intervalId = setInterval(() => {
-        if (currentPoll) {
-          fetchPollResults(pollId).catch(err => {
-            console.error("Error refreshing poll results:", err);
-          });
-        }
-      }, 5000); // Check for updates every 5 seconds
-      
-      return () => clearInterval(intervalId);
     }
-  }, [pollId, selectPoll, fetchPollResults, currentUser, currentPoll]);
+    
+    return () => {
+      isMounted = false;
+    };
+  }, [pollId, selectPoll, fetchPollResults, currentUser]);
 
   const handleOptionSelect = (index: number) => {
+    console.log(`Option ${index} selected`);
+    
     if (currentPoll?.choiceType === "single") {
       setSelectedOptions([index]);
     } else {
       const isSelected = selectedOptions.includes(index);
       if (isSelected) {
-        setSelectedOptions(selectedOptions.filter(i => i !== index));
+        setSelectedOptions(prev => prev.filter(i => i !== index));
       } else {
-        setSelectedOptions([...selectedOptions, index]);
+        setSelectedOptions(prev => [...prev, index]);
       }
     }
   };
@@ -140,10 +178,7 @@ export default function PollDetail() {
   const isPollExpired = new Date(currentPoll.endTime) < new Date();
   const showResults = userVote || isPollExpired || votedSuccessfully;
   const totalVotes = pollResults.reduce((sum, result) => sum + result.count, 0);
-
-  // For private polls, show passcode to creator
-  const isCreator = currentUser?.walletAddress === currentPoll.creatorId;
-  const showPasscode = isCreator && currentPoll.visibility === "private";
+  const isSingleChoice = currentPoll.choiceType === "single";
 
   return (
     <div className="max-w-md mx-auto p-4 md:p-6">
@@ -198,16 +233,6 @@ export default function PollDetail() {
           </div>
         </div>
 
-        {showPasscode && (
-          <div className="bg-yellow-50 p-3 rounded-lg mb-4 text-sm">
-            <p className="font-medium text-yellow-800">Private Poll Passcode:</p>
-            <p className="mt-1 font-mono bg-white px-2 py-1 rounded border border-yellow-300">
-              {currentPoll.passcode}
-            </p>
-            <p className="mt-1 text-yellow-700">Share this passcode with people you want to invite to this poll.</p>
-          </div>
-        )}
-
         {votedSuccessfully && (
           <div className="bg-green-50 text-green-700 p-3 rounded-lg mb-4">
             Your vote has been recorded successfully!
@@ -255,34 +280,18 @@ export default function PollDetail() {
         ) : (
           <div className="space-y-4 mt-6">
             <h3 className="font-medium text-lg">
-              {currentPoll.choiceType === "single" ? "Select one option:" : "Select one or more options:"}
+              {isSingleChoice ? "Select one option:" : "Select one or more options:"}
             </h3>
             
             {currentPoll.options.map((option, index) => (
-              <div 
+              <VoteOption
                 key={index}
-                onClick={() => handleOptionSelect(index)}
-                className={`border rounded-lg p-4 cursor-pointer transition-all ${
-                  selectedOptions.includes(index) 
-                    ? "border-blue-500 bg-blue-50" 
-                    : "border-gray-200 hover:border-gray-300"
-                }`}
-              >
-                <div className="flex items-center">
-                  <div className={`w-5 h-5 flex-shrink-0 rounded-full border ${
-                    selectedOptions.includes(index) 
-                      ? "border-blue-500 bg-blue-500" 
-                      : "border-gray-300"
-                  }`}>
-                    {selectedOptions.includes(index) && (
-                      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-                      </svg>
-                    )}
-                  </div>
-                  <span className="ml-3">{option}</span>
-                </div>
-              </div>
+                option={option}
+                index={index}
+                isSelected={selectedOptions.includes(index)}
+                isSingleChoice={isSingleChoice}
+                onSelect={handleOptionSelect}
+              />
             ))}
 
             <Button
