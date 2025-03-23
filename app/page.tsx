@@ -14,25 +14,25 @@ import { Navbar } from "@/components/Navbar";
 function PollStats() {
   const { polls, votes, isLoading } = useRealtime();
   const [recentPolls, setRecentPolls] = useState<Poll[]>([]);
-  
+
   // Update stats whenever polls or votes change
   useEffect(() => {
     if (isLoading) return;
-    
+
     // Get 3 most recent polls
     const recent = [...polls]
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
       .slice(0, 3);
     setRecentPolls(recent);
   }, [polls, votes, isLoading]);
-  
+
   return (
     <section className="bg-gray-900/50 backdrop-blur-sm rounded-xl border border-gray-800 p-6 shadow-lg animated-bg">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-semibold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-white-500">Live Platform Stats</h2>
+        <h2 className="text-xl font-semibold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-white-900">Live Platform Stats</h2>
         <RealtimeStatus />
       </div>
-      
+
       <div className="grid grid-cols-2 gap-4 mb-4">
         <div className="bg-white-900/30 border border-blue-800/30 p-4 rounded-lg text-center">
           <p className="text-sm text-blue-300 mb-1">Total Polls</p>
@@ -43,7 +43,7 @@ function PollStats() {
           <p className="text-2xl font-bold text-indigo-200">{isLoading ? "..." : votes.length}</p>
         </div>
       </div>
-      
+
       {isLoading ? (
         <div className="py-6 text-center">
           <div className="animate-pulse flex space-x-4 justify-center">
@@ -72,7 +72,7 @@ function PollStats() {
           No polls available yet
         </div>
       )}
-      
+
       <div className="flex items-center justify-center mt-4 gap-1 text-xs text-gray-500">
         <span>🔄</span>
         <span>Data automatically syncs between all devices</span>
@@ -90,13 +90,13 @@ export default function Home() {
   useEffect(() => {
     console.log("Current user in Home:", currentUser);
   }, [currentUser]);
-  
+
   useEffect(() => {
     const checkMiniKit = async () => {
       const isInstalled = MiniKit.isInstalled();
       if (isInstalled) {
         setIsLoading(false);
-        
+
         // Check if the user is actually logged in with MiniKit
         if (!MiniKit.user || !MiniKit.user.id) {
           // Clear currentUser in VotingContext if no valid MiniKit session
@@ -126,12 +126,14 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-black text-white ">
-      
+
       <main className="container mx-auto px-4 pt-20">
         <div className="w-full max-w-md mx-auto space-y-8 pt-8">
           <div className="text-center">
-            <h1 className="text-3xl font-bold text-center mb-2 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-white-500">Pick ;)</h1>
-            <p className="text-xl font-bold text-center mb-2 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-white-500">Create and vote on polls securely with World ID verification</p>
+            <h1 className="text-3xl font-bold text-center mb-2 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-white-900">Pick ;)</h1>
+            <p className="text-xl font-bold text-center mb-2 text-white">
+              Create and vote on polls securely with World ID verification
+            </p>
           </div>
 
           {/* Stats component shows before or after login */}
@@ -146,7 +148,7 @@ export default function Home() {
             <section className="bg-gray-900/50 backdrop-blur-sm rounded-xl shadow-lg p-6 transition-all border border-gray-800 animated-bg">
               <h2 className="text-xl font-semibold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-indigo-500">Main Menu</h2>
               <div className="flex flex-col space-y-4">
-                <Button 
+                <Button
                   onClick={() => router.push('/create-poll')}
                   className="futuristic-button"
                 >
@@ -157,7 +159,7 @@ export default function Home() {
                     Create a Poll
                   </div>
                 </Button>
-                <Button 
+                <Button
                   onClick={() => router.push('/vote')}
                   variant="outline"
                   className="border-gray-700 hover:bg-gray-800"
@@ -169,9 +171,9 @@ export default function Home() {
                     Vote on a Poll
                   </div>
                 </Button>
-                
+
                 {/* Profile button */}
-                <Button 
+                <Button
                   onClick={() => router.push('/profile')}
                   variant="ghost"
                   className="mt-2 bg-gray-800/50 hover:bg-gray-700/50"
@@ -186,7 +188,7 @@ export default function Home() {
               </div>
             </section>
           )}
-          
+
           <div className="text-center mt-8">
             <p className="text-xs text-gray-500 mt-2">Secured by World ID • {new Date().getFullYear()}</p>
           </div>
