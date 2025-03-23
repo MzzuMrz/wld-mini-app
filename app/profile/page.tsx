@@ -11,6 +11,10 @@ import { Avatar } from "@/components/ui/avatar";
 import { MiniKit } from "@worldcoin/minikit-js";
 import { Poll, Vote } from "@/types";
 
+import Image from "next/image";
+
+import Collectible from '../../public/collectibles/Pick.png'
+
 // Import collectible card component
 import CollectibleCard from "@/components/collectibles/collectible-card";
 
@@ -192,13 +196,29 @@ export default function ProfilePage() {
                 ))}
               </div>
             ) : (
-              <div className="text-center p-8 bg-gray-900/50 rounded-lg border border-gray-800">
-                <h3 className="text-lg font-medium text-gray-400">No collectibles yet</h3>
-                <p className="text-gray-500 mt-2">
-                  Vote on polls to earn unique collectibles!
-                </p>
+              <div className="flex flex-col items-center p-8 bg-gray-900/50 rounded-lg border border-gray-800">
+                {/* NFT Mockup Image */}
+                <div className="w-64 h-64 mb-6 relative group">
+  {/* Efecto de brillo exterior */}
+  <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-blue-500 via-purple-500 to-indigo-500 opacity-75 blur-md group-hover:opacity-100 transition-opacity duration-300"></div>
+  
+  {/* Borde con brillo */}
+  <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-blue-400 via-purple-400 to-indigo-400 p-0.5">
+    {/* Contenedor de la imagen con fondo negro */}
+    <div className="bg-black rounded-lg h-full w-full overflow-hidden">
+      <Image 
+        src={Collectible}
+        alt="Sample NFT" 
+        className="w-full h-full object-cover"
+      />
+    </div>
+  </div>
+</div>
+                
+                <h3 className="text-lg font-medium text-blue-400">Earn More Collectibles!</h3>
+             
                 <Button 
-                  className="mt-4"
+                  className="mt-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500"
                   onClick={() => router.push('/')}
                 >
                   Browse Polls

@@ -1,0 +1,165 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background glow -->
+  <rect width="512" height="512" fill="url(#backgroundGradient)" />
+  
+  <!-- Display box -->
+  <rect x="96" y="96" width="320" height="320" rx="16" fill="url(#boxGradient)" stroke="url(#boxBorder)" stroke-width="4" />
+  
+  <!-- Glass effect -->
+  <rect x="106" y="106" width="300" height="300" rx="12" fill="url(#glassGradient)" opacity="0.7" />
+  
+  <!-- Pedestal -->
+  <ellipse cx="256" cy="340" rx="80" ry="20" fill="url(#pedestalGradient)" />
+  
+  <!-- Spotlight effect -->
+  <ellipse cx="256" cy="240" rx="100" ry="120" fill="url(#spotlightGradient)" />
+  
+  <!-- Duck body -->
+  <ellipse cx="256" cy="280" rx="70" ry="50" fill="url(#goldBody)" stroke="#B88A44" stroke-width="3" />
+  
+  <!-- Duck head -->
+  <circle cx="310" cy="230" r="40" fill="url(#goldHead)" stroke="#B88A44" stroke-width="3" />
+  
+  <!-- Duck eye -->
+  <circle cx="325" cy="220" r="8" fill="black" />
+  <circle cx="327" cy="218" r="3" fill="white" />
+  
+  <!-- Duck bill -->
+  <path d="M350 230 L380 225 L375 245 L350 240 Z" fill="url(#goldBill)" stroke="#B88A44" stroke-width="2" />
+  
+  <!-- Duck wing -->
+  <ellipse cx="220" cy="280" rx="35" ry="25" fill="url(#goldWing)" stroke="#B88A44" stroke-width="2" transform="rotate(-10 220 280)" />
+  
+  <!-- Crown -->
+  <path d="M290 190 L310 170 L330 190 L310 195 Z" fill="url(#goldCrown)" stroke="#B88A44" stroke-width="2" />
+  <path d="M270 190 L290 170 L310 190 L290 195 Z" fill="url(#goldCrown)" stroke="#B88A44" stroke-width="2" />
+  <path d="M310 190 L330 170 L350 190 L330 195 Z" fill="url(#goldCrown)" stroke="#B88A44" stroke-width="2" />
+  <rect x="270" y="190" width="80" height="10" fill="url(#goldCrownBase)" stroke="#B88A44" stroke-width="2" />
+  
+  <!-- Gems on crown -->
+  <circle cx="290" cy="180" r="4" fill="url(#redGem)" />
+  <circle cx="310" cy="175" r="5" fill="url(#blueGem)" />
+  <circle cx="330" cy="180" r="4" fill="url(#greenGem)" />
+  
+  <!-- Shine effects on duck -->
+  <ellipse cx="280" cy="260" rx="25" ry="15" fill="url(#shine)" opacity="0.7" transform="rotate(-20 280 260)" />
+  <ellipse cx="230" cy="290" rx="20" ry="10" fill="url(#shine)" opacity="0.5" transform="rotate(10 230 290)" />
+  
+  <!-- Sparkles -->
+  <path d="M180 180 L190 170 L200 180 L190 190 Z" fill="white" opacity="0.9">
+    <animate attributeName="opacity" values="0.9;0.3;0.9" dur="2s" repeatCount="indefinite" />
+  </path>
+  <path d="M330 150 L340 140 L350 150 L340 160 Z" fill="white" opacity="0.9">
+    <animate attributeName="opacity" values="0.9;0.3;0.9" dur="1.5s" repeatCount="indefinite" />
+  </path>
+  <path d="M370 260 L380 250 L390 260 L380 270 Z" fill="white" opacity="0.9">
+    <animate attributeName="opacity" values="0.9;0.3;0.9" dur="2.5s" repeatCount="indefinite" />
+  </path>
+  
+  <!-- Box reflections -->
+  <path d="M106 106 L406 106 L396 116 L116 116 Z" fill="white" opacity="0.3" />
+  <path d="M106 106 L106 406 L116 396 L116 116 Z" fill="white" opacity="0.2" />
+  
+  <!-- Box shadow -->
+  <rect x="96" y="96" width="320" height="320" rx="16" fill="none" filter="url(#boxShadow)" />
+  
+  <!-- World ID Verified text -->
+  <text x="256" y="420" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="url(#textGradient)">WORLD ID VERIFIED</text>
+  
+  <!-- Definitions for gradients and filters -->
+  <defs>
+    <radialGradient id="backgroundGradient" cx="0.5" cy="0.5" r="0.8" gradientUnits="objectBoundingBox">
+      <stop offset="0%" stop-color="#1A1A2E" />
+      <stop offset="100%" stop-color="#0F0F1A" />
+    </radialGradient>
+    
+    <linearGradient id="boxGradient" x1="0" y1="0" x2="1" y2="1" gradientUnits="objectBoundingBox">
+      <stop offset="0%" stop-color="#2A2A40" />
+      <stop offset="100%" stop-color="#1A1A2E" />
+    </linearGradient>
+    
+    <linearGradient id="boxBorder" x1="0" y1="0" x2="1" y2="1" gradientUnits="objectBoundingBox">
+      <stop offset="0%" stop-color="#4A4A80" />
+      <stop offset="100%" stop-color="#2A2A40" />
+    </linearGradient>
+    
+    <linearGradient id="glassGradient" x1="0" y1="0" x2="1" y2="1" gradientUnits="objectBoundingBox">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.1" />
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0.05" />
+    </linearGradient>
+    
+    <radialGradient id="pedestalGradient" cx="0.5" cy="0.5" r="0.5" gradientUnits="objectBoundingBox">
+      <stop offset="0%" stop-color="#4A4A80" />
+      <stop offset="100%" stop-color="#2A2A40" />
+    </radialGradient>
+    
+    <radialGradient id="spotlightGradient" cx="0.5" cy="0.3" r="0.5" gradientUnits="objectBoundingBox">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.2" />
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0" />
+    </radialGradient>
+    
+    <linearGradient id="goldBody" x1="0" y1="0" x2="1" y2="1" gradientUnits="objectBoundingBox">
+      <stop offset="0%" stop-color="#FFD700" />
+      <stop offset="50%" stop-color="#FFC107" />
+      <stop offset="100%" stop-color="#FF8C00" />
+    </linearGradient>
+    
+    <linearGradient id="goldHead" x1="0" y1="0" x2="1" y2="1" gradientUnits="objectBoundingBox">
+      <stop offset="0%" stop-color="#FFD700" />
+      <stop offset="50%" stop-color="#FFC107" />
+      <stop offset="100%" stop-color="#FF8C00" />
+    </linearGradient>
+    
+    <linearGradient id="goldBill" x1="0" y1="0" x2="1" y2="1" gradientUnits="objectBoundingBox">
+      <stop offset="0%" stop-color="#FFA500" />
+      <stop offset="100%" stop-color="#FF4500" />
+    </linearGradient>
+    
+    <linearGradient id="goldWing" x1="0" y1="0" x2="1" y2="1" gradientUnits="objectBoundingBox">
+      <stop offset="0%" stop-color="#FFD700" />
+      <stop offset="100%" stop-color="#FFA500" />
+    </linearGradient>
+    
+    <linearGradient id="goldCrown" x1="0" y1="0" x2="1" y2="1" gradientUnits="objectBoundingBox">
+      <stop offset="0%" stop-color="#FFD700" />
+      <stop offset="50%" stop-color="#FFC107" />
+      <stop offset="100%" stop-color="#FF8C00" />
+    </linearGradient>
+    
+    <linearGradient id="goldCrownBase" x1="0" y1="0" x2="1" y2="1" gradientUnits="objectBoundingBox">
+      <stop offset="0%" stop-color="#FFD700" />
+      <stop offset="100%" stop-color="#B8860B" />
+    </linearGradient>
+    
+    <radialGradient id="shine" cx="0.5" cy="0.5" r="0.5" gradientUnits="objectBoundingBox">
+      <stop offset="0%" stop-color="white" stop-opacity="0.8" />
+      <stop offset="100%" stop-color="white" stop-opacity="0" />
+    </radialGradient>
+    
+    <radialGradient id="redGem" cx="0.5" cy="0.5" r="0.5" gradientUnits="objectBoundingBox">
+      <stop offset="0%" stop-color="#FF5555" />
+      <stop offset="100%" stop-color="#AA0000" />
+    </radialGradient>
+    
+    <radialGradient id="blueGem" cx="0.5" cy="0.5" r="0.5" gradientUnits="objectBoundingBox">
+      <stop offset="0%" stop-color="#5555FF" />
+      <stop offset="100%" stop-color="#0000AA" />
+    </radialGradient>
+    
+    <radialGradient id="greenGem" cx="0.5" cy="0.5" r="0.5" gradientUnits="objectBoundingBox">
+      <stop offset="0%" stop-color="#55FF55" />
+      <stop offset="100%" stop-color="#00AA00" />
+    </radialGradient>
+    
+    <linearGradient id="textGradient" x1="0" y1="0" x2="1" y2="0" gradientUnits="objectBoundingBox">
+      <stop offset="0%" stop-color="#FFD700" />
+      <stop offset="50%" stop-color="#FFFFFF" />
+      <stop offset="100%" stop-color="#FFD700" />
+    </linearGradient>
+    
+    <filter id="boxShadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="10" stdDeviation="15" flood-color="#000000" flood-opacity="0.5" />
+    </filter>
+  </defs>
+</svg>
+
