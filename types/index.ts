@@ -32,3 +32,10 @@ export interface User {
   worldHumanId?: string; // World ID unique identifier
   verificationLevel?: VerificationLevel;
 }
+
+export interface Collectible {
+  id: string;
+  name: string;
+  image: string;
+  date: string;
+}

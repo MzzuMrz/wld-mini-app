@@ -1,6 +1,6 @@
 "use client";
 
-import { Poll, User, Vote, VerificationLevel } from '@/types';
+import { Poll, User, Vote, VerificationLevel, Collectible } from '@/types';
 import { createContext, useContext, useState, ReactNode, useEffect, useCallback } from 'react';
 import { useRealtime } from './RealtimeContext';
 import { MiniKit } from "@worldcoin/minikit-js";
@@ -13,6 +13,7 @@ interface VotingContextType {
   userVote: Vote | null;
   pollResults: Array<{ option: string; count: number; voters?: string[] }>;
   isLoading: boolean;
+  collectibles: Collectible[];
   
   // Actions
   setCurrentUser: (user: User | null) => void;
@@ -24,6 +25,7 @@ interface VotingContextType {
   selectPoll: (pollId: string) => Promise<Poll | null>;
   clearCurrentPoll: () => void;
   checkUserVoted: (pollId: string) => Promise<boolean>;
+  addCollectible: (collectible: Collectible) => void;
 }
 
 const VotingContext = createContext<VotingContextType | undefined>(undefined);
@@ -38,6 +40,7 @@ export function VotingProvider({ children }: { children: ReactNode }) {
   const [polls, setPolls] = useState<Poll[]>([]);
   const [userVote, setUserVote] = useState<Vote | null>(null);
   const [pollResults, setPollResults] = useState<Array<{ option: string; count: number; voters?: string[] }>>([]);
+  const [collectibles, setCollectibles] = useState<Collectible[]>([]);
 
   // Load user from session if available
   useEffect(() => {
@@ -78,6 +81,23 @@ export function VotingProvider({ children }: { children: ReactNode }) {
 
     loadUser();
   }, []);
+
+  // Load collectibles from localStorage when user changes
+  useEffect(() => {
+    if (currentUser?.worldHumanId) {
+      try {
+        const storedCollectibles = localStorage.getItem(`collectibles_${currentUser.worldHumanId}`);
+        if (storedCollectibles) {
+          setCollectibles(JSON.parse(storedCollectibles));
+        }
+      } catch (error) {
+        console.error("Error loading collectibles from localStorage:", error);
+      }
+    } else {
+      // Clear collectibles if no user
+      setCollectibles([]);
+    }
+  }, [currentUser?.worldHumanId]);
 
   // Memoize these functions to prevent unnecessary re-renders
   const fetchPublicPolls = useCallback(async (verificationLevel?: VerificationLevel): Promise<Poll[]> => {
@@ -179,6 +199,29 @@ export function VotingProvider({ children }: { children: ReactNode }) {
     return !!vote;
   }, [currentUser, realtime]);
 
+  // Add a new collectible to the user's collection
+  const addCollectible = useCallback((collectible: Collectible) => {
+    if (!currentUser?.worldHumanId) return;
+    
+    setCollectibles(prev => {
+      // Check if collectible already exists to avoid duplicates
+      const exists = prev.some(item => item.id === collectible.id);
+      if (exists) return prev;
+      
+      // Add new collectible to the array
+      const updatedCollectibles = [...prev, collectible];
+      
+      // Save to localStorage for persistence
+      try {
+        localStorage.setItem(`collectibles_${currentUser.worldHumanId}`, JSON.stringify(updatedCollectibles));
+      } catch (error) {
+        console.error("Error saving collectibles to localStorage:", error);
+      }
+      
+      return updatedCollectibles;
+    });
+  }, [currentUser?.worldHumanId]);
+
   // Value should be memoized to prevent unnecessary renders
   const value = {
     currentUser,
@@ -187,6 +230,7 @@ export function VotingProvider({ children }: { children: ReactNode }) {
     userVote,
     pollResults,
     isLoading: realtime.isLoading,
+    collectibles,
     setCurrentUser,
     fetchPublicPolls,
     fetchPrivatePoll,
@@ -196,6 +240,7 @@ export function VotingProvider({ children }: { children: ReactNode }) {
     selectPoll,
     clearCurrentPoll,
     checkUserVoted,
+    addCollectible,
   };
 
   return <VotingContext.Provider value={value}>{children}</VotingContext.Provider>;
