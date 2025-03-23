@@ -192,7 +192,6 @@ export default function Vote() {
 
   return (
     <div className="min-h-screen bg-black text-white pb-16">
-      <Navbar />
       
       <main className="container mx-auto px-4 pt-20">
         <div className="max-w-lg mx-auto pt-6">

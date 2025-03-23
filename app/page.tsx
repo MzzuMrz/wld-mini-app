@@ -29,12 +29,12 @@ function PollStats() {
   return (
     <section className="bg-gray-900/50 backdrop-blur-sm rounded-xl border border-gray-800 p-6 shadow-lg animated-bg">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-semibold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-indigo-500">Live Platform Stats</h2>
+        <h2 className="text-xl font-semibold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-white-500">Live Platform Stats</h2>
         <RealtimeStatus />
       </div>
       
       <div className="grid grid-cols-2 gap-4 mb-4">
-        <div className="bg-blue-900/30 border border-blue-800/30 p-4 rounded-lg text-center">
+        <div className="bg-white-900/30 border border-blue-800/30 p-4 rounded-lg text-center">
           <p className="text-sm text-blue-300 mb-1">Total Polls</p>
           <p className="text-2xl font-bold text-blue-200">{isLoading ? "..." : polls.length}</p>
         </div>
@@ -52,11 +52,11 @@ function PollStats() {
         </div>
       ) : recentPolls.length > 0 ? (
         <>
-          <h3 className="text-sm font-medium mb-2 text-gray-300">Recent Polls</h3>
+          <h1 className="text-sm font-medium mb-2 text-gray-300">Recent Polls!</h1>
           <div className="space-y-2">
             {recentPolls.map(poll => (
               <div key={poll.id} className="text-xs p-3 bg-gray-900/70 rounded border border-gray-800 hover:border-gray-700 transition-all cursor-pointer">
-                <p className="font-medium text-gray-200 truncate">{poll.title}</p>
+                <p className="font-large text-gray-200 truncate">{poll.title}</p>
                 <p className="text-gray-400 flex justify-between items-center mt-1">
                   <span>{new Date(poll.createdAt).toLocaleDateString()}</span>
                   <span className="bg-gray-800 text-gray-300 px-2 py-0.5 rounded-full text-xs">
@@ -112,7 +112,7 @@ export default function Home() {
 
   if (isLoading) {
     return (
-      <main className="flex min-h-screen flex-col items-center justify-center p-4 md:p-8 lg:p-12 bg-black">
+      <main className="flex min-h-screen flex-col items-center justify-center bg-black">
         <div className="flex flex-col items-center justify-center text-center">
           <svg className="animate-spin h-10 w-10 text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
@@ -125,14 +125,13 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white pb-16">
-      <Navbar />
+    <div className="min-h-screen bg-black text-white ">
       
       <main className="container mx-auto px-4 pt-20">
         <div className="w-full max-w-md mx-auto space-y-8 pt-8">
           <div className="text-center">
-            <h1 className="text-3xl font-bold text-center mb-2 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-indigo-500">World ID Voting</h1>
-            <p className="text-sm text-gray-400 mb-8">Create and vote on polls securely with World ID verification</p>
+            <h1 className="text-3xl font-bold text-center mb-2 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-white-500">Pick ;)</h1>
+            <p className="text-xl font-bold text-center mb-2 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-white-500">Create and vote on polls securely with World ID verification</p>
           </div>
 
           {/* Stats component shows before or after login */}

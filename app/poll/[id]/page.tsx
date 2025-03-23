@@ -242,7 +242,6 @@ export default function PollDetail() {
 
   return (
     <div className="min-h-screen bg-black text-white pb-16">
-      <Navbar />
       
       {/* Collectible Earned Dialog */}
       <CollectibleEarnedDialog 
